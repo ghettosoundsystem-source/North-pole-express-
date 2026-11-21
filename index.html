@@ -1,1 +1,2037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta name="theme-color" content="#7A0C14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>North Pole Express — Official Festive Family Edition</title>
+  <style>
+    :root {
+      --crimson-dark: #5C060C;
+      --crimson: #8B0000;
+      --crimson-bright: #B81D24;
+      --evergreen-dark: #0D2E1E;
+      --evergreen: #164A32;
+      --gold: #D4AF37;
+      --gold-light: #F6DC7A;
+      --gold-dark: #9E7B16;
+      --snow: #FFFAFA;
+      --cream: #FDF6E7;
+      --ink: #241914;
+      --muted: #6B5B53;
+      --card-shadow: 0 10px 28px rgba(36, 12, 12, 0.28);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background: radial-gradient(circle at top, #9B111E 0%, #5C060C 55%, #2D0407 100%);
+      color: var(--snow);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body.grotto-locked {
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+    }
+
+    /* Snowfall Canvas */
+    #snowCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    /* =========================================================
+       3D GROTTO DOUBLE-DOOR PAYWALL
+       ========================================================= */
+    #grottoOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1600px;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    #grottoOverlay.doors-open {
+      pointer-events: none;
+    }
+
+    .grotto-door {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      width: 50%;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(0, 0, 0, 0.08) 0px,
+          rgba(0, 0, 0, 0.08) 2px,
+          transparent 2px,
+          transparent 48px
+        ),
+        linear-gradient(160deg, #8B0000 0%, #590409 60%, #380205 100%);
+      border-top: 6px solid var(--gold);
+      border-bottom: 6px solid var(--gold);
+      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.65);
+      transition: transform 1.25s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease 0.85s;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .grotto-door.left {
+      left: 0;
+      transform-origin: left center;
+      border-right: 3px solid var(--gold);
+      justify-content: flex-end;
+    }
+
+    .grotto-door.right {
+      right: 0;
+      transform-origin: right center;
+      border-left: 3px solid var(--gold);
+      justify-content: flex-start;
+    }
+
+    .door-panel {
+      width: 78%;
+      height: 82%;
+      margin: 0 8%;
+      border: 3px solid rgba(212, 175, 55, 0.55);
+      border-radius: 14px;
+      box-shadow: inset 0 0 24px rgba(212, 175, 55, 0.2);
+      position: relative;
+    }
+
+    .door-knocker {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, var(--gold-light), var(--gold-dark));
+      border: 3px solid #FFF2B2;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      margin: 0 14px;
+      flex-shrink: 0;
+    }
+
+    #grottoOverlay.doors-open .grotto-door.left {
+      transform: rotateY(-108deg);
+      opacity: 0;
+    }
+
+    #grottoOverlay.doors-open .grotto-door.right {
+      transform: rotateY(108deg);
+      opacity: 0;
+    }
+
+    .grotto-card {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 470px;
+      background: linear-gradient(180deg, #FFFDF7 0%, #F8EED8 100%);
+      color: var(--ink);
+      border: 3px solid var(--gold);
+      border-radius: 22px;
+      padding: 24px 20px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.72), 0 0 0 6px rgba(139, 0, 0, 0.75);
+      text-align: center;
+      transition: transform 0.55s ease, opacity 0.45s ease;
+    }
+
+    #grottoOverlay.doors-open .grotto-card {
+      transform: scale(0.92);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .grotto-crest {
+      display: inline-block;
+      background: var(--evergreen);
+      color: var(--gold-light);
+      border: 1.5px solid var(--gold);
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .grotto-card h1 {
+      margin: 4px 0 6px;
+      font-size: 1.75rem;
+      color: var(--crimson);
+      line-height: 1.15;
+    }
+
+    .grotto-subtitle {
+      margin: 0 0 16px;
+      font-size: 0.94rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .grotto-features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .grotto-feat {
+      background: rgba(212, 175, 55, 0.14);
+      border: 1px solid rgba(158, 123, 22, 0.35);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.82rem;
+      font-weight: bold;
+      color: var(--evergreen-dark);
+    }
+
+    .btn-stripe {
+      display: block;
+      width: 100%;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, #B81D24 0%, #7A0C14 100%);
+      color: #FFFDF7;
+      border: 2px solid var(--gold);
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(139, 0, 0, 0.35);
+      margin-bottom: 10px;
+    }
+
+    .btn-stripe:active {
+      transform: scale(0.99);
+    }
+
+    .btn-trial {
+      display: block;
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--evergreen);
+      color: #FFFDF7;
+      border: 1.5px solid var(--gold);
+      border-radius: 12px;
+      font-size: 0.92rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 14px;
+    }
+
+    .grotto-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 0;
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .grotto-divider::before,
+    .grotto-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: rgba(158, 123, 22, 0.4);
+    }
+
+    .login-box {
+      background: #FFF;
+      border: 1.5px solid rgba(158, 123, 22, 0.45);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: left;
+    }
+
+    .login-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 10px;
+      border: 1.5px solid #D8C7A8;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: #FFFDF9;
+      color: var(--ink);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 10px 14px;
+      background: linear-gradient(135deg, var(--gold) 0%, #B88E1E 100%);
+      color: #1D1204;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .grotto-msg {
+      margin-top: 8px;
+      font-size: 0.83rem;
+      min-height: 18px;
+      color: var(--crimson);
+      font-weight: bold;
+      text-align: center;
+    }
+
+    /* =========================================================
+       MAIN APP SHELL
+       ========================================================= */
+    .app-shell {
+      position: relative;
+      z-index: 10;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 12px 14px 48px;
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, rgba(13, 46, 30, 0.96), rgba(22, 74, 50, 0.96));
+      border: 2px solid var(--gold);
+      border-radius: 18px;
+      padding: 14px 16px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .brand-title h2 {
+      margin: 0;
+      font-size: 1.35rem;
+      color: var(--gold-light);
+      letter-spacing: 0.02em;
+    }
+
+    .brand-title p {
+      margin: 2px 0 0;
+      font-size: 0.8rem;
+      color: #E3EFE8;
+    }
+
+    .topbar-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pill-badge {
+      background: rgba(212, 175, 55, 0.18);
+      border: 1px solid var(--gold);
+      color: var(--gold-light);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: bold;
+    }
+
+    .btn-mini {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--snow);
+      border: 1px solid rgba(212, 175, 55, 0.65);
+      border-radius: 999px;
+      padding: 6px 11px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .btn-mini:active {
+      transform: scale(0.97);
+    }
+
+    /* Welcome Passcode Banner */
+    #passcodeBanner {
+      display: none;
+      background: linear-gradient(135deg, #FFFDF7, #F6E6BD);
+      color: var(--ink);
+      border: 2px solid var(--gold);
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--card-shadow);
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    #passcodeBanner.visible {
+      display: flex;
+    }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .tab-btn {
+      background: rgba(45, 4, 7, 0.85);
+      color: #F5E6D3;
+      border: 1.5px solid rgba(212, 175, 55, 0.55);
+      border-radius: 14px;
+      padding: 11px 8px;
+      font-size: 0.86rem;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(180deg, #FFFDF7 0%, #F4E4BE 100%);
+      color: var(--crimson);
+      border-color: var(--gold);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+    }
+
+    .tab-panel {
+      display: none;
+      background: linear-gradient(180deg, #FFFDF8 0%, #FBF3E4 100%);
+      color: var(--ink);
+      border: 2.5px solid var(--gold);
+      border-radius: 20px;
+      padding: 18px 16px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .panel-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 2px solid rgba(212, 175, 55, 0.45);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .panel-header h3 {
+      margin: 0;
+      font-size: 1.35rem;
+      color: var(--crimson);
+    }
+
+    .panel-header p {
+      margin: 3px 0 0;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    /* =========================================================
+       TAB 1: 24-DAY ADVENT CALENDAR
+       ========================================================= */
+    .advent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+      gap: 10px;
+    }
+
+    .advent-door {
+      aspect-ratio: 1 / 1.05;
+      border-radius: 14px;
+      border: 2px solid var(--gold);
+      background: linear-gradient(145deg, #9B111E 0%, #63070D 100%);
+      color: var(--gold-light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 8px;
+      text-align: center;
+      box-shadow: 0 5px 12px rgba(92, 6, 12, 0.25);
+      transition: transform 0.18s ease;
+    }
+
+    .advent-door:hover {
+      transform: translateY(-2px);
+    }
+
+    .advent-door.opened {
+      background: linear-gradient(145deg, var(--evergreen) 0%, var(--evergreen-dark) 100%);
+      color: #FFFDF7;
+    }
+
+    .advent-door .day-num {
+      font-size: 1.55rem;
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    .advent-door .day-tag {
+      font-size: 0.72rem;
+      margin-top: 6px;
+      opacity: 0.92;
+    }
+
+    .advent-reveal {
+      margin-top: 16px;
+      background: #FFF;
+      border: 2px solid var(--evergreen);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: none;
+    }
+
+    .advent-reveal.visible {
+      display: block;
+    }
+
+    /* =========================================================
+       TAB 2: 64-ITEM TOY LIBRARY
+       ========================================================= */
+    .toy-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .toy-controls input,
+    .toy-controls select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #D3BFA0;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      background: #FFF;
+      color: var(--ink);
+    }
+
+    .wishlist-bar {
+      background: linear-gradient(135deg, var(--evergreen-dark), var(--evergreen));
+      color: #FFF;
+      border: 1.5px solid var(--gold);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+
+    .wishlist-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0 10px;
+    }
+
+    .wish-chip {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid var(--gold-light);
+      color: var(--gold-light);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .toy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 10px;
+      max-height: 480px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .toy-card {
+      background: #FFF;
+      border: 1.5px solid #E2D2B7;
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .toy-card.selected {
+      border-color: var(--evergreen);
+      background: #F1FAF5;
+    }
+
+    .toy-cat {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--crimson);
+      font-weight: bold;
+    }
+
+    .toy-name {
+      font-size: 0.94rem;
+      font-weight: bold;
+      color: var(--ink);
+    }
+
+    .btn-wish-toggle {
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1.5px solid var(--gold-dark);
+      background: #FFF8E6;
+      color: var(--ink);
+      font-weight: bold;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .toy-card.selected .btn-wish-toggle {
+      background: var(--evergreen);
+      color: #FFF;
+      border-color: var(--evergreen);
+    }
+
+    /* =========================================================
+       TAB 3: DEC 1-25 BEDTIME BEHAVIOUR CHART
+       ========================================================= */
+    .chart-summary {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #FFF;
+      border: 1.5px solid var(--gold);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+
+    .behaviour-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .star-day {
+      background: #FFF;
+      border: 1.5px solid #DECBA8;
+      border-radius: 12px;
+      padding: 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: transform 0.15s ease;
+    }
+
+    .star-day.earned {
+      background: linear-gradient(180deg, #FFFBEB 0%, #FDECA6 100%);
+      border: 2px solid var(--gold-dark);
+    }
+
+    .star-day.super {
+      background: linear-gradient(180deg, #ECFDF3 0%, #D1FAE5 100%);
+      border: 2px solid var(--evergreen);
+    }
+
+    .star-icon {
+      font-size: 1.65rem;
+      margin: 4px 0;
+    }
+
+    /* =========================================================
+       TAB 4: SANTA REPLY LETTER (ISO A4 PORTRAIT)
+       ========================================================= */
+    .letter-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .form-group {
+      margin-bottom: 11px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: var(--evergreen-dark);
+      margin-bottom: 4px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1.5px solid #D3BFA0;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      background: #FFF;
+      color: var(--ink);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 13px 16px;
+      background: linear-gradient(135deg, #B81D24 0%, #7A0C14 100%);
+      color: #FFFDF7;
+      border: 2px solid var(--gold);
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--evergreen);
+      color: #FFFDF7;
+      border: 1.5px solid var(--gold);
+      border-radius: 12px;
+      font-size: 0.92rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+
+    .a4-preview-wrap {
+      background: #E8DEC8;
+      border: 2px solid var(--gold-dark);
+      border-radius: 14px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    #santaLetterCanvas {
+      width: 100%;
+      max-width: 440px;
+      height: auto;
+      aspect-ratio: 210 / 297;
+      border-radius: 6px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      background: #FFFDF8;
+      display: block;
+      margin: 0 auto 10px;
+    }
+
+    .a4-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    @media (max-width: 780px) {
+      .nav-tabs {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .letter-layout {
+        grid-template-columns: 1fr;
+      }
+      .toy-controls {
+        grid-template-columns: 1fr;
+      }
+      .login-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* =========================================================
+       PRINT STYLESHEET (ISO A4 PORTRAIT FULL BLEED)
+       ========================================================= */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+      body * {
+        visibility: hidden !important;
+      }
+      #santaLetterCanvas,
+      #santaLetterCanvas * {
+        visibility: visible !important;
+      }
+      #santaLetterCanvas {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        max-width: none !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body class="grotto-locked">
+
+  <canvas id="snowCanvas" aria-hidden="true"></canvas>
+
+  <!-- =========================================================
+       3D GROTTO DOUBLE-DOOR PAYWALL
+       ========================================================= -->
+  <div id="grottoOverlay" role="dialog" aria-modal="true" aria-labelledby="grottoHeading">
+    <div class="grotto-door left" aria-hidden="true">
+      <div class="door-panel"></div>
+      <div class="door-knocker"></div>
+    </div>
+    <div class="grotto-door right" aria-hidden="true">
+      <div class="door-knocker"></div>
+      <div class="door-panel"></div>
+    </div>
+
+    <div class="grotto-card">
+      <div class="grotto-crest">North Pole Official Pass</div>
+      <h1 id="grottoHeading">North Pole Express</h1>
+      <p class="grotto-subtitle">
+        Step through the Grotto Doors for your family's 24-Day Advent Calendar, 64-Item Toy Library, Dec 1–25 Bedtime Star Chart, and Printable ISO A4 Reply Letter from Santa.
+      </p>
+
+      <div class="grotto-features">
+        <div class="grotto-feat">🎄 24-Day Interactive Advent</div>
+        <div class="grotto-feat">🧸 64-Item Toy Wishlist</div>
+        <div class="grotto-feat">⭐ Dec 1–25 Star Chart</div>
+        <div class="grotto-feat">📜 A4 Santa Reply Letter</div>
+      </div>
+
+      <a
+        id="stripePayBtn"
+        class="btn-stripe"
+        href="https://buy.stripe.com/3cI7sLemFaAY4Yn1u88EM0b"
+        rel="noopener"
+      >
+        Unlock Full Family Grotto Pass via Stripe
+      </a>
+
+      <button type="button" id="startTrialBtn" class="btn-trial">
+        Start 7-Day Free Family Trial
+      </button>
+
+      <div class="grotto-divider">Returning Member or Admin Pass</div>
+
+      <div class="login-box">
+        <div class="login-row">
+          <input type="text" id="memberUserInput" placeholder="Family Name (e.g. Grass)" autocomplete="username" />
+          <input type="text" id="memberCodeInput" placeholder="Grotto Passcode" autocomplete="off" />
+        </div>
+        <button type="button" id="memberLoginBtn" class="btn-login">
+          Open the Grotto Doors
+        </button>
+        <div id="grottoStatusMsg" class="grotto-msg" role="status"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MAIN APPLICATION SHELL
+       ========================================================= -->
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-title">
+        <h2>🚂 North Pole Express</h2>
+        <p>Official Workshop Dispatch &bull; 1 Reindeer Lane, North Pole, H0H 0H0</p>
+      </div>
+      <div class="topbar-controls">
+        <span id="activePassBadge" class="pill-badge">Pass: Locked</span>
+        <button type="button" id="bellToggleBtn" class="btn-mini">🔔 Sleigh Bells: On</button>
+        <button type="button" id="lockGrottoBtn" class="btn-mini">🔒 Lock Doors</button>
+      </div>
+    </header>
+
+    <div id="passcodeBanner" role="status">
+      <div>
+        <strong>🎉 Welcome to the North Pole Express!</strong>
+        <div style="font-size:0.88rem; margin-top:2px;">
+          Save your unique Grotto Passcode to log back in anytime:
+          <code id="bannerPasscodeText" style="background:#FFF; padding:2px 8px; border-radius:6px; border:1px solid #9E7B16; font-weight:bold;"></code>
+        </div>
+      </div>
+      <button type="button" id="dismissBannerBtn" class="btn-mini" style="background:#8B0000; color:#FFF;">Got It</button>
+    </div>
+
+    <nav class="nav-tabs" aria-label="North Pole Express Sections">
+      <button type="button" class="tab-btn active" data-tab="adventTab">🎄 24-Day Advent</button>
+      <button type="button" class="tab-btn" data-tab="toysTab">🧸 64-Toy Library</button>
+      <button type="button" class="tab-btn" data-tab="starsTab">⭐ Bedtime Chart</button>
+      <button type="button" class="tab-btn" data-tab="letterTab">📜 Santa A4 Letter</button>
+    </nav>
+
+    <!-- =======================================================
+         TAB 1: 24-DAY ADVENT CALENDAR
+         ======================================================= -->
+    <section id="adventTab" class="tab-panel active">
+      <div class="panel-header">
+        <div>
+          <h3>24-Day North Pole Advent Calendar</h3>
+          <p>Tap any door from December 1 to 24 for a Workshop Story &amp; Family Kindness Quest.</p>
+        </div>
+        <button type="button" id="resetAdventBtn" class="btn-mini" style="background:#164A32; color:#FFF;">Reset Doors</button>
+      </div>
+
+      <div id="adventGrid" class="advent-grid"></div>
+
+      <div id="adventReveal" class="advent-reveal">
+        <h4 id="adventRevealTitle" style="margin:0 0 6px; color:#8B0000; font-size:1.15rem;"></h4>
+        <p id="adventRevealStory" style="margin:0 0 8px; line-height:1.5;"></p>
+        <div id="adventRevealTask" style="background:#F4FBF7; border-left:4px solid #164A32; padding:8px 12px; font-weight:bold; color:#0D2E1E;"></div>
+      </div>
+    </section>
+
+    <!-- =======================================================
+         TAB 2: 64-ITEM TOY LIBRARY
+         ======================================================= -->
+    <section id="toysTab" class="tab-panel">
+      <div class="panel-header">
+        <div>
+          <h3>Santa's 64-Item Workshop Toy Library</h3>
+          <p>Pick up to 10 favourite gifts to add straight onto your Official Letter to Santa.</p>
+        </div>
+        <span id="toyCountBadge" class="pill-badge" style="background:#8B0000; color:#FFF;">64 Workshop Toys</span>
+      </div>
+
+      <div class="wishlist-bar">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <strong>🎁 My Santa Wishlist (<span id="wishCount">0</span>/10 selected)</strong>
+          <button type="button" id="sendWishesToLetterBtn" class="btn-mini" style="background:#D4AF37; color:#1D1204; font-weight:bold;">
+            Send Wishlist to Santa's Letter &rarr;
+          </button>
+        </div>
+        <div id="wishlistChips" class="wishlist-chips"></div>
+        <div style="display:flex; gap:8px; margin-top:6px;">
+          <input type="text" id="customToyInput" placeholder="Add a custom wish not in the 64 toys..." style="flex:1; padding:8px 10px; border-radius:8px; border:1px solid #D4AF37; font-size:0.88rem;" />
+          <button type="button" id="addCustomToyBtn" class="btn-mini" style="background:#FFF; color:#0D2E1E; font-weight:bold;">+ Add</button>
+        </div>
+      </div>
+
+      <div class="toy-controls">
+        <input type="search" id="toySearchInput" placeholder="Search all 64 toys (e.g. bike, train, telescope)..." />
+        <select id="toyCategoryFilter">
+          <option value="ALL">All 8 Categories (64 Toys)</option>
+          <option value="Creative & Arts">Creative &amp; Arts (8)</option>
+          <option value="STEM & Gadgets">STEM &amp; Gadgets (8)</option>
+          <option value="Active & Wheels">Active &amp; Wheels (8)</option>
+          <option value="Games & Puzzles">Games &amp; Puzzles (8)</option>
+          <option value="Books & Stories">Books &amp; Stories (8)</option>
+          <option value="Plush & Cozy">Plush &amp; Cozy (8)</option>
+          <option value="Music & Stage">Music &amp; Stage (8)</option>
+          <option value="Build & Models">Build &amp; Models (8)</option>
+        </select>
+      </div>
+
+      <div id="toyGrid" class="toy-grid"></div>
+    </section>
+
+    <!-- =======================================================
+         TAB 3: DEC 1-25 BEDTIME BEHAVIOUR CHART
+         ======================================================= -->
+    <section id="starsTab" class="tab-panel">
+      <div class="panel-header">
+        <div>
+          <h3>December 1–25 Bedtime &amp; Kindness Star Chart</h3>
+          <p>Tap each evening to award a Golden Star ⭐ or Super Elf Bonus 🌟.</p>
+        </div>
+        <button type="button" id="resetStarsBtn" class="btn-mini" style="background:#8B0000; color:#FFF;">Clear Stars</button>
+      </div>
+
+      <div class="chart-summary">
+        <div>
+          <strong style="font-size:1.05rem; color:#8B0000;">Golden Stars Earned: <span id="totalStarsCount">0</span> / 25</strong>
+          <div id="spiritMeterText" style="font-size:0.86rem; color:#164A32; margin-top:2px;">
+            North Pole Spirit Status: Ready for Takeoff!
+          </div>
+        </div>
+        <button type="button" id="syncStarsToLetterBtn" class="btn-mini" style="background:#164A32; color:#FFF; font-weight:bold;">
+          Include Stars in Santa Letter &rarr;
+        </button>
+      </div>
+
+      <div id="behaviourGrid" class="behaviour-grid"></div>
+    </section>
+
+    <!-- =======================================================
+         TAB 4: PERSONALISED ISO A4 PORTRAIT SANTA REPLY LETTER
+         ======================================================= -->
+    <section id="letterTab" class="tab-panel">
+      <div class="panel-header">
+        <div>
+          <h3>Official ISO A4 Reply Letter from Santa Claus</h3>
+          <p>Personalised with your child's name, hometown, Golden Stars, and Toy Wishlist — ready for A4 printing.</p>
+        </div>
+      </div>
+
+      <div class="letter-layout">
+        <div>
+          <div class="form-group">
+            <label for="childNameInput">Child's First Name</label>
+            <input type="text" id="childNameInput" value="George" placeholder="Enter child's name" />
+          </div>
+
+          <div class="form-group">
+            <label for="childAgeInput">Child's Age</label>
+            <input type="number" id="childAgeInput" value="10" min="1" max="17" />
+          </div>
+
+          <div class="form-group">
+            <label for="childTownInput">Hometown / City</label>
+            <input type="text" id="childTownInput" value="Cambridge" placeholder="e.g. Cambridge" />
+          </div>
+
+          <div class="form-group">
+            <label for="childDeedInput">Something Proud / Kind Done This Year</label>
+            <input type="text" id="childDeedInput" value="working hard at school, helping at home, and practising boxing" placeholder="e.g. helping family and working hard at school" />
+          </div>
+
+          <div class="form-group">
+            <label for="childWishesInput">Top Christmas Wishes (Auto-fills from Toy Library)</label>
+            <textarea id="childWishesInput" rows="3" placeholder="e.g. Wooden Train Set, Stargazing Telescope">Stargazing Refractor Telescope, Remote Control Off-Road Buggy</textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="childExtraInput">Optional Family / Pet Mention</label>
+            <input type="text" id="childExtraInput" value="giving Blu an extra festive treat" placeholder="e.g. leaving carrots for Rudolph and treats for our dog" />
+          </div>
+
+          <button type="button" id="generateLetterBtn" class="btn-primary">
+            ✨ Send Up the Chimney &amp; Update A4 Letter
+          </button>
+        </div>
+
+        <div class="a4-preview-wrap">
+          <canvas id="santaLetterCanvas" width="1240" height="1754" aria-label="ISO A4 Portrait Reply Letter from Santa Claus"></canvas>
+          <div class="a4-actions">
+            <button type="button" id="downloadA4Btn" class="btn-secondary">
+              ⬇️ Download PNG (A4)
+            </button>
+            <button type="button" id="printA4Btn" class="btn-primary" style="margin-bottom:0;">
+              🖨️ Print ISO A4 Letter
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /* =========================================================
+         1. SAFE STORAGE & PWA MANIFEST SETUP
+         ========================================================= */
+      const STORAGE_KEYS = {
+        session: "npe_member_session_v2",
+        advent: "npe_advent_opened_v2",
+        wishlist: "npe_toy_wishlist_v2",
+        stars: "npe_bedtime_stars_v2",
+        letter: "npe_santa_letter_v2",
+        bells: "npe_sleigh_bells_v2"
+      };
+
+      const DEV_PASSCODE = "SANTA-DEV-2026";
+
+      function safeGet(key, fallback) {
+        try {
+          const raw = window.localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : fallback;
+        } catch (err) {
+          return fallback;
+        }
+      }
+
+      function safeSet(key, val) {
+        try {
+          window.localStorage.setItem(key, JSON.stringify(val));
+        } catch (err) {
+          /* Ignore storage quota/private mode errors */
+        }
+      }
+
+      function registerInlineManifest() {
+        try {
+          const svgIcon =
+            "data:image/svg+xml;utf8," +
+            encodeURIComponent(
+              '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">' +
+              '<rect width="512" height="512" rx="96" fill="#7A0C14"/>' +
+              '<circle cx="256" cy="256" r="210" fill="none" stroke="#D4AF37" stroke-width="18"/>' +
+              '<text x="256" y="295" font-size="210" text-anchor="middle">🚂</text>' +
+              "</svg>"
+            );
+          const manifestObj = {
+            name: "North Pole Express",
+            short_name: "NorthPoleExpress",
+            start_url: "./",
+            display: "standalone",
+            background_color: "#5C060C",
+            theme_color: "#7A0C14",
+            icons: [{ src: svgIcon, sizes: "512x512", type: "image/svg+xml" }]
+          };
+          const blob = new Blob([JSON.stringify(manifestObj)], { type: "application/manifest+json" });
+          const link = document.createElement("link");
+          link.rel = "manifest";
+          link.href = URL.createObjectURL(blob);
+          document.head.appendChild(link);
+        } catch (err) {
+          /* Manifest optional */
+        }
+      }
+
+      /* =========================================================
+         2. SLEIGH BELLS WEB AUDIO SYNTHESIZER
+         ========================================================= */
+      let bellsEnabled = safeGet(STORAGE_KEYS.bells, true);
+      let audioCtx = null;
+
+      function playSleighBells() {
+        if (!bellsEnabled) return;
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return;
+          if (!audioCtx) audioCtx = new AudioContextClass();
+          if (audioCtx.state === "suspended") audioCtx.resume();
+
+          const notes = [1318.5, 1567.98, 1760.0, 2093.0, 1567.98];
+          const now = audioCtx.currentTime;
+          notes.forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.001, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.09, now + idx * 0.08 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.08 + 0.42);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.45);
+          });
+        } catch (err) {
+          /* Ignore audio block */
+        }
+      }
+
+      /* =========================================================
+         3. SNOWFALL ANIMATION
+         ========================================================= */
+      function initSnowfall() {
+        const canvas = document.getElementById("snowCanvas");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        let w = (canvas.width = window.innerWidth);
+        let h = (canvas.height = window.innerHeight);
+
+        const flakes = Array.from({ length: 55 }, () => ({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          r: Math.random() * 2.8 + 1.1,
+          vy: Math.random() * 0.9 + 0.35,
+          vx: (Math.random() - 0.5) * 0.5
+        }));
+
+        window.addEventListener("resize", () => {
+          w = canvas.width = window.innerWidth;
+          h = canvas.height = window.innerHeight;
+        });
+
+        function tick() {
+          ctx.clearRect(0, 0, w, h);
+          ctx.fillStyle = "rgba(255, 250, 250, 0.72)";
+          ctx.beginPath();
+          for (let i = 0; i < flakes.length; i++) {
+            const f = flakes[i];
+            f.y += f.vy;
+            f.x += f.vx;
+            if (f.y > h) {
+              f.y = -5;
+              f.x = Math.random() * w;
+            }
+            if (f.x > w) f.x = 0;
+            if (f.x < 0) f.x = w;
+            ctx.moveTo(f.x, f.y);
+            ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+          }
+          ctx.fill();
+          requestAnimationFrame(tick);
+        }
+        tick();
+      }
+
+      /* =========================================================
+         4. 3D GROTTO DOUBLE-DOOR PAYWALL & ACCESS CONTROL
+         ========================================================= */
+      function generatePasscode() {
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        const part = () =>
+          Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+        return "NPE-" + part() + "-" + part();
+      }
+
+      function unlockGrotto(sessionObj, showNewBanner) {
+        safeSet(STORAGE_KEYS.session, sessionObj);
+
+        const overlay = document.getElementById("grottoOverlay");
+        const badge = document.getElementById("activePassBadge");
+        const banner = document.getElementById("passcodeBanner");
+        const bannerCode = document.getElementById("bannerPasscodeText");
+
+        if (badge) {
+          badge.textContent = sessionObj.user + " • " + sessionObj.code;
+        }
+
+        if (showNewBanner && banner && bannerCode) {
+          bannerCode.textContent = sessionObj.code;
+          banner.classList.add("visible");
+        }
+
+        document.body.classList.remove("grotto-locked");
+        if (overlay) {
+          overlay.classList.add("doors-open");
+          setTimeout(() => {
+            overlay.style.display = "none";
+          }, 1300);
+        }
+        playSleighBells();
+      }
+
+      function lockGrotto() {
+        const overlay = document.getElementById("grottoOverlay");
+        if (!overlay) return;
+        overlay.style.display = "flex";
+        requestAnimationFrame(() => {
+          overlay.classList.remove("doors-open");
+          document.body.classList.add("grotto-locked");
+        });
+      }
+
+      function checkInitialAccess() {
+        const params = new URLSearchParams(window.location.search);
+        const isStripeReturn =
+          params.get("unlocked") === "true" ||
+          params.get("payment") === "success" ||
+          Boolean(params.get("session_id"));
+
+        if (isStripeReturn) {
+          const newCode = generatePasscode();
+          const session = {
+            user: "Grotto Member",
+            code: newCode,
+            tier: "PAID",
+            unlockedAt: Date.now()
+          };
+          try {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } catch (err) {
+            /* Ignore history replace error */
+          }
+          unlockGrotto(session, true);
+          return;
+        }
+
+        const saved = safeGet(STORAGE_KEYS.session, null);
+        if (saved && saved.code) {
+          if (saved.tier === "TRIAL") {
+            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+            if (Date.now() - saved.unlockedAt > sevenDaysMs) {
+              const msg = document.getElementById("grottoStatusMsg");
+              if (msg) msg.textContent = "Your 7-day trial has ended. Unlock full access or enter your Grotto Passcode.";
+              return;
+            }
+          }
+          unlockGrotto(saved, false);
+        }
+      }
+
+      function initGrottoControls() {
+        const trialBtn = document.getElementById("startTrialBtn");
+        const loginBtn = document.getElementById("memberLoginBtn");
+        const lockBtn = document.getElementById("lockGrottoBtn");
+        const dismissBtn = document.getElementById("dismissBannerBtn");
+        const bellBtn = document.getElementById("bellToggleBtn");
+
+        if (bellBtn) {
+          bellBtn.textContent = bellsEnabled ? "🔔 Sleigh Bells: On" : "🔕 Sleigh Bells: Off";
+          bellBtn.addEventListener("click", () => {
+            bellsEnabled = !bellsEnabled;
+            safeSet(STORAGE_KEYS.bells, bellsEnabled);
+            bellBtn.textContent = bellsEnabled ? "🔔 Sleigh Bells: On" : "🔕 Sleigh Bells: Off";
+            if (bellsEnabled) playSleighBells();
+          });
+        }
+
+        if (trialBtn) {
+          trialBtn.addEventListener("click", () => {
+            const code = generatePasscode();
+            unlockGrotto(
+              { user: "7-Day Trial Family", code: code, tier: "TRIAL", unlockedAt: Date.now() },
+              true
+            );
+          });
+        }
+
+        if (loginBtn) {
+          loginBtn.addEventListener("click", () => {
+            const userVal = (document.getElementById("memberUserInput").value || "").trim() || "Grotto Family";
+            const codeVal = (document.getElementById("memberCodeInput").value || "").trim().toUpperCase();
+            const msg = document.getElementById("grottoStatusMsg");
+            const saved = safeGet(STORAGE_KEYS.session, null);
+
+            const isValidDev = codeVal === DEV_PASSCODE;
+            const isSavedMatch = saved && saved.code && codeVal === saved.code.toUpperCase();
+            const isValidFormat = /^NPE-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(codeVal);
+
+            if (isValidDev || isSavedMatch || isValidFormat) {
+              if (msg) msg.textContent = "";
+              unlockGrotto(
+                {
+                  user: isValidDev ? "Creator Admin" : userVal,
+                  code: codeVal,
+                  tier: isValidDev ? "ADMIN" : "MEMBER",
+                  unlockedAt: Date.now()
+                },
+                false
+              );
+            } else {
+              if (msg) {
+                msg.textContent = "Please enter a valid NPE-XXXX-XXXX Passcode or complete Stripe checkout above.";
+              }
+            }
+          });
+        }
+
+        if (lockBtn) {
+          lockBtn.addEventListener("click", lockGrotto);
+        }
+
+        if (dismissBtn) {
+          dismissBtn.addEventListener("click", () => {
+            const banner = document.getElementById("passcodeBanner");
+            if (banner) banner.classList.remove("visible");
+          });
+        }
+      }
+
+      /* =========================================================
+         5. TAB NAVIGATION
+         ========================================================= */
+      function initTabs() {
+        const buttons = document.querySelectorAll(".tab-btn");
+        const panels = document.querySelectorAll(".tab-panel");
+
+        buttons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const targetId = btn.getAttribute("data-tab");
+            buttons.forEach((b) => b.classList.remove("active"));
+            panels.forEach((p) => p.classList.remove("active"));
+            btn.classList.add("active");
+            const target = document.getElementById(targetId);
+            if (target) target.classList.add("active");
+            playSleighBells();
+          });
+        });
+      }
+
+      /* =========================================================
+         6. DATA: 24-DAY ADVENT CALENDAR
+         ========================================================= */
+      const ADVENT_DAYS = [
+        { day: 1, title: "The Sleigh Polishing Crew", story: "Head Elf Bernard opened the main hangar doors at dawn. Nine teams of elves are buffing the brass runners on Santa's sleigh until they gleam like mirrors.", task: "Kindness Quest: Tidy your shoes and coat neatly without being asked." },
+        { day: 2, title: "Rudolph's Fog-Lamp Check", story: "Rudolph tested his bright red nose across the Arctic runway today, guiding two cargo sleds safely through a swirling snow squall.", task: "Kindness Quest: Share a warm compliment with someone in your family." },
+        { day: 3, title: "The Great Gingerbread Blueprint", story: "Mrs. Claus rolled out six trays of spiced gingerbread and drew icing maps of every chimney rooftop in Britain.", task: "Kindness Quest: Help set or clear the table at dinner tonight." },
+        { day: 4, title: "Wooden Train Paint Shop", story: "In Workshop Bay 4, miniature steam engines received coats of crimson, emerald, and gold leaf paint.", task: "Kindness Quest: Draw or colour a festive picture for a family member." },
+        { day: 5, title: "The Reindeer Oat Feast", story: "Dasher and Dancer trotted two laps around Candy Cane Ridge before tucking into warm cinnamon oats and crunchy carrots.", task: "Kindness Quest: Drink an extra glass of water and eat a healthy snack." },
+        { day: 6, title: "The Brass Telescope Alignment", story: "North Pole astronomers polished the rooftop brass telescope to chart the clearest star-path over England.", task: "Kindness Quest: Look outside tonight and spot the brightest star or moon." },
+        { day: 7, title: "Ribbon & Wax Seal Station", story: "Thousands of spools of scarlet ribbon arrived by polar express train, ready for the wrapping elves.", task: "Kindness Quest: Organise your toys or school books into a neat stack." },
+        { day: 8, title: "Snow-Globe Weather Watch", story: "A gentle flurry dusted Evergreen Square while the elves sang carols around the cocoa cauldron.", task: "Kindness Quest: Tell a funny joke or story to make someone laugh." },
+        { day: 9, title: "The Clockwork Gear Room", story: "Master tinkerer Pip calibrated tiny brass springs for wind-up robots, music boxes, and pocket compasses.", task: "Kindness Quest: Practise a skill or hobby for 15 focused minutes." },
+        { day: 10, title: "Postbag Sorting Mountain", story: "The North Pole Post Office stamped 40,000 letters today with the official Arctic Circle postmark.", task: "Kindness Quest: Write or update your Santa Wishlist in the Toy Library." },
+        { day: 11, title: "Prancer & Vixen's High-Jump Drill", story: "Prancer and Vixen practised silent rooftop landings on the snowy practice chimneys.", task: "Kindness Quest: Tip-toe as quietly as an elf before bedtime tonight." },
+        { day: 12, title: "Hot Cocoa & Marshmallow Break", story: "Santa called a half-hour pause in the workshop so every elf could enjoy warm cocoa topped with vanilla snow-puffs.", task: "Kindness Quest: Say a big thank-you to whoever cooks or prepares your meal." },
+        { day: 13, title: "The Secret Toy Testing Track", story: "Remote-control buggies and wooden racers zoomed around the figure-eight test circuit in Bay 7.", task: "Kindness Quest: Be a good sport during a game or playtime today." },
+        { day: 14, title: "Jingle Bell Tuning", story: "Each harness bell was tuned to a crystal-clear musical chime so Santa's sleigh sounds like a symphony in the night sky.", task: "Kindness Quest: Hum or sing your favourite Christmas song." },
+        { day: 15, title: "The Golden Ledger Check", story: "Santa put on his half-moon spectacles and smiled brightly while reading the Golden Star Bedtime Charts.", task: "Kindness Quest: Brush your teeth carefully morning and night." },
+        { day: 16, title: "Polar Bear Ice-Sculpture Festival", story: "Down by Frosty Lagoon, friendly polar bears carved ice castles lit by northern lights.", task: "Kindness Quest: Help a sibling, friend, or parent with a small job." },
+        { day: 17, title: "Magic Sack Expansion Spell", story: "Mrs. Claus stitched an extra golden seam into Santa's velvet toy sack so every single parcel fits with room to spare.", task: "Kindness Quest: Put away all clothes into the laundry basket or wardrobe." },
+        { day: 18, title: "Comet & Cupid's Night Flight", story: "Comet and Cupid flew a practice loop past the North Star, trailing sparkles across the midnight sky.", task: "Kindness Quest: Get into pyjamas on time without a single grumble." },
+        { day: 19, title: "The Storybook Printing Press", story: "Fresh adventure books rolled off the press with gold-embossed covers and crisp illustrations.", task: "Kindness Quest: Read a chapter of a book or enjoy a bedtime story." },
+        { day: 20, title: "Donner & Blitzen's Speed Run", story: "Donner and Blitzen clocked a record speed across the northern tundra while pulling a full practice load.", task: "Kindness Quest: Do 10 star jumps or stretch out your muscles." },
+        { day: 21, title: "Winter Solstice Lanterns", story: "On the shortest day of the year, the entire North Pole village lit golden lanterns along Reindeer Lane.", task: "Kindness Quest: Switch off unnecessary lights when leaving a room." },
+        { day: 22, title: "Final Parcel Tagging", story: "Every parcel now wears a crisp gold-bordered tag with each child's name and hometown written in neat ink.", task: "Kindness Quest: Double-check your Santa Reply Letter in Tab 4!" },
+        { day: 23, title: "Sleigh Loading Begins", story: "Elves formed a joyful chain from the workshop doors to the sleigh, loading gifts row by neat row.", task: "Kindness Quest: Tidy your bedroom floor so Santa has a clear path." },
+        { day: 24, title: "Christmas Eve Takeoff!", story: "All nine reindeer are harnessed, Rudolph's nose is glowing bright, and Santa is checking the UK flight plan!", task: "Christmas Eve Quest: Leave a treat for Santa & Rudolph, and go to sleep early!" }
+      ];
+
+      function initAdvent() {
+        const grid = document.getElementById("adventGrid");
+        const reveal = document.getElementById("adventReveal");
+        const rTitle = document.getElementById("adventRevealTitle");
+        const rStory = document.getElementById("adventRevealStory");
+        const rTask = document.getElementById("adventRevealTask");
+        const resetBtn = document.getElementById("resetAdventBtn");
+        if (!grid) return;
+
+        let openedDays = safeGet(STORAGE_KEYS.advent, []);
+
+        function render() {
+          grid.innerHTML = "";
+          ADVENT_DAYS.forEach((item) => {
+            const isOpen = openedDays.includes(item.day);
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "advent-door" + (isOpen ? " opened" : "");
+            btn.innerHTML =
+              '<span class="day-num">' + item.day + "</span>" +
+              '<span class="day-tag">' + (isOpen ? "★ Opened" : "Tap to Open") + "</span>";
+            btn.addEventListener("click", () => {
+              if (!openedDays.includes(item.day)) {
+                openedDays.push(item.day);
+                safeSet(STORAGE_KEYS.advent, openedDays);
+              }
+              rTitle.textContent = "December " + item.day + " — " + item.title;
+              rStory.textContent = item.story;
+              rTask.textContent = item.task;
+              reveal.classList.add("visible");
+              playSleighBells();
+              render();
+            });
+            grid.appendChild(btn);
+          });
+        }
+
+        if (resetBtn) {
+          resetBtn.addEventListener("click", () => {
+            openedDays = [];
+            safeSet(STORAGE_KEYS.advent, openedDays);
+            reveal.classList.remove("visible");
+            render();
+          });
+        }
+
+        render();
+      }
+
+      /* =========================================================
+         7. DATA: 64-ITEM TOY LIBRARY (8 CATEGORIES x 8 ITEMS = 64)
+         ========================================================= */
+      const TOY_LIBRARY = [
+        /* 1. Creative & Arts (8) */
+        { id: 1, cat: "Creative & Arts", name: "Deluxe Wooden Art Easel & Chalkboard" },
+        { id: 2, cat: "Creative & Arts", name: "120-Piece Artist Watercolour & Sketch Case" },
+        { id: 3, cat: "Creative & Arts", name: "Pottery Wheel & Air-Dry Clay Studio" },
+        { id: 4, cat: "Creative & Arts", name: "3D Printing Pen with Glow Filaments" },
+        { id: 5, cat: "Creative & Arts", name: "Origami & Paper Plane Folding Kit" },
+        { id: 6, cat: "Creative & Arts", name: "Calligraphy & Wax Seal Stationery Set" },
+        { id: 7, cat: "Creative & Arts", name: "Friendship Bracelet & Bead Loom" },
+        { id: 8, cat: "Creative & Arts", name: "Glow-in-the-Dark Window Paint Kit" },
+
+        /* 2. STEM & Gadgets (8) */
+        { id: 9, cat: "STEM & Gadgets", name: "Stargazing Refractor Telescope" },
+        { id: 10, cat: "STEM & Gadgets", name: "Programmable Mars Rover Robotics Kit" },
+        { id: 11, cat: "STEM & Gadgets", name: "Snap-Together Electronic Circuit Lab" },
+        { id: 12, cat: "STEM & Gadgets", name: "Pocket Explorer Digital Microscope" },
+        { id: 13, cat: "STEM & Gadgets", name: "Crystal Growing & Volcano Science Lab" },
+        { id: 14, cat: "STEM & Gadgets", name: "Long-Range Rechargeable Walkie Talkies" },
+        { id: 15, cat: "STEM & Gadgets", name: "Solar-Powered 12-in-1 Robot Builder" },
+        { id: 16, cat: "STEM & Gadgets", name: "Junior Metal Detector & Treasure Finder" },
+
+        /* 3. Active & Wheels (8) */
+        { id: 17, cat: "Active & Wheels", name: "All-Terrain Mountain Bike & Helmet" },
+        { id: 18, cat: "Active & Wheels", name: "LED Light-Up Folding Kick Scooter" },
+        { id: 19, cat: "Active & Wheels", name: "Junior Boxing Gloves & Punching Bag Set" },
+        { id: 20, cat: "Active & Wheels", name: "Maple Wood Trick Skateboard" },
+        { id: 21, cat: "Active & Wheels", name: "Garden Pop-Up Football Goal & Match Ball" },
+        { id: 22, cat: "Active & Wheels", name: "Remote Control Off-Road Monster Buggy" },
+        { id: 23, cat: "Active & Wheels", name: "Adjustable Inline Roller Skates" },
+        { id: 24, cat: "Active & Wheels", name: "Indoor Doorway Basketball Hoop" },
+
+        /* 4. Games & Puzzles (8) */
+        { id: 25, cat: "Games & Puzzles", name: "Handcrafted Wooden Chess & Draughts Set" },
+        { id: 26, cat: "Games & Puzzles", name: "1000-Piece North Pole Express Jigsaw" },
+        { id: 27, cat: "Games & Puzzles", name: "Family Trivia & Charades Party Box" },
+        { id: 28, cat: "Games & Puzzles", name: "3D Gravity Marble Maze Tower" },
+        { id: 29, cat: "Games & Puzzles", name: "Tabletop Air Hockey Arcade" },
+        { id: 30, cat: "Games & Puzzles", name: "Junior Detective Mystery Board Game" },
+        { id: 31, cat: "Games & Puzzles", name: "Magnetic Travel Games Compendium" },
+        { id: 32, cat: "Games & Puzzles", name: "Speed Cube & Brainteaser Puzzle Pack" },
+
+        /* 5. Books & Stories (8) */
+        { id: 33, cat: "Books & Stories", name: "Illustrated Treasury of Myths & Legends" },
+        { id: 34, cat: "Books & Stories", name: "World Atlas & Ancient Wonders Encyclopaedia" },
+        { id: 35, cat: "Books & Stories", name: "Complete Fantasy Adventure Book Box Set" },
+        { id: 36, cat: "Books & Stories", name: "Space & Dinosaurs Pop-Up Hardback" },
+        { id: 37, cat: "Books & Stories", name: "Create-Your-Own Comic Book Blank Journal" },
+        { id: 38, cat: "Books & Stories", name: "Junior Survival & Bushcraft Field Guide" },
+        { id: 39, cat: "Books & Stories", name: "Classic Bedtime Tales Gold Edition" },
+        { id: 40, cat: "Books & Stories", name: "1001 Brain-Bending Riddles & Jokes Book" },
+
+        /* 6. Plush & Cozy (8) */
+        { id: 41, cat: "Plush & Cozy", name: "Giant Velvet Rudolph Plush Companion" },
+        { id: 42, cat: "Plush & Cozy", name: "Arctic Polar Bear & Cub Snuggle Set" },
+        { id: 43, cat: "Plush & Cozy", name: "Starlight Galaxy Ceiling Projector Lamp" },
+        { id: 44, cat: "Plush & Cozy", name: "Sherpa Fleece Festive Hoodie Blanket" },
+        { id: 45, cat: "Plush & Cozy", name: "Weighted Cozy Husky Bedtime Plush" },
+        { id: 46, cat: "Plush & Cozy", name: "Indoor Fairy-Light Reading Teepee Tent" },
+        { id: 47, cat: "Plush & Cozy", name: "Snowy Owl Soft Toy with Hoot Sound" },
+        { id: 48, cat: "Plush & Cozy", name: "Personalised Reindeer Hot Water Bottle" },
+
+        /* 7. Music & Stage (8) */
+        { id: 49, cat: "Music & Stage", name: "61-Key Light-Up Learning Keyboard" },
+        { id: 50, cat: "Music & Stage", name: "Junior Acoustic Guitar & Plectrum Pack" },
+        { id: 51, cat: "Music & Stage", name: "Mini DJ Mixer Deck with Sound Pads" },
+        { id: 52, cat: "Music & Stage", name: "Wireless Karaoke Microphone & Speaker" },
+        { id: 53, cat: "Music & Stage", name: "Roll-Up Electronic Practice Drum Pad" },
+        { id: 54, cat: "Music & Stage", name: "Grand Magician's 75-Trick Top Hat Set" },
+        { id: 55, cat: "Music & Stage", name: "Wooden Ukulele with Tuner & Songbook" },
+        { id: 56, cat: "Music & Stage", name: "Stop-Motion Animation Movie Studio" },
+
+        /* 8. Build & Models (8) */
+        { id: 57, cat: "Build & Models", name: "North Pole Express Electric Train Set" },
+        { id: 58, cat: "Build & Models", name: "1500-Piece Medieval Castle Brick Kit" },
+        { id: 59, cat: "Build & Models", name: "Eco-Timber Treehouse Architecture Kit" },
+        { id: 60, cat: "Build & Models", name: "100-Piece Magnetic Tiles Crystal Fortress" },
+        { id: 61, cat: "Build & Models", name: "Real Junior Carpenter's Steel Tool Box" },
+        { id: 62, cat: "Build & Models", name: "Die-Cast Classic Steam Locomotive Model" },
+        { id: 63, cat: "Build & Models", name: "Wooden Mechanical Clockwork Airship" },
+        { id: 64, cat: "Build & Models", name: "Customisable Slot-Car Grand Prix Track" }
+      ];
+
+      function initToyLibrary() {
+        const grid = document.getElementById("toyGrid");
+        const chips = document.getElementById("wishlistChips");
+        const wishCount = document.getElementById("wishCount");
+        const searchInput = document.getElementById("toySearchInput");
+        const catSelect = document.getElementById("toyCategoryFilter");
+        const customInput = document.getElementById("customToyInput");
+        const addCustomBtn = document.getElementById("addCustomToyBtn");
+        const sendBtn = document.getElementById("sendWishesToLetterBtn");
+        if (!grid) return;
+
+        let wishlist = safeGet(STORAGE_KEYS.wishlist, [
+          "Stargazing Refractor Telescope",
+          "North Pole Express Electric Train Set"
+        ]);
+
+        function toggleWish(name) {
+          const idx = wishlist.indexOf(name);
+          if (idx >= 0) {
+            wishlist.splice(idx, 1);
+          } else {
+            if (wishlist.length >= 10) {
+              alert("Santa's golden scroll holds up to 10 top wishes! Tap a chip to swap one.");
+              return;
+            }
+            wishlist.push(name);
+          }
+          safeSet(STORAGE_KEYS.wishlist, wishlist);
+          playSleighBells();
+          renderWishlist();
+          renderToys();
+        }
+
+        function renderWishlist() {
+          if (wishCount) wishCount.textContent = String(wishlist.length);
+          if (!chips) return;
+          chips.innerHTML = "";
+          if (wishlist.length === 0) {
+            chips.innerHTML = '<span style="font-size:0.82rem; opacity:0.85;">No toys selected yet — tap "+ Add to Wishlist" below.</span>';
+            return;
+          }
+          wishlist.forEach((w) => {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = "wish-chip";
+            chip.textContent = w + " ✕";
+            chip.addEventListener("click", () => toggleWish(w));
+            chips.appendChild(chip);
+          });
+        }
+
+        function renderToys() {
+          const query = (searchInput ? searchInput.value : "").trim().toLowerCase();
+          const cat = catSelect ? catSelect.value : "ALL";
+          grid.innerHTML = "";
+
+          const filtered = TOY_LIBRARY.filter((t) => {
+            const catOk = cat === "ALL" || t.cat === cat;
+            const textOk =
+              !query ||
+              t.name.toLowerCase().includes(query) ||
+              t.cat.toLowerCase().includes(query);
+            return catOk && textOk;
+          });
+
+          filtered.forEach((toy) => {
+            const selected = wishlist.includes(toy.name);
+            const card = document.createElement("div");
+            card.className = "toy-card" + (selected ? " selected" : "");
+            card.innerHTML =
+              '<div><div class="toy-cat">#' + toy.id + " &bull; " + toy.cat + "</div>" +
+              '<div class="toy-name">' + toy.name + "</div></div>";
+
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "btn-wish-toggle";
+            btn.textContent = selected ? "✓ On My Wishlist" : "+ Add to Wishlist";
+            btn.addEventListener("click", () => toggleWish(toy.name));
+
+            card.appendChild(btn);
+            grid.appendChild(card);
+          });
+        }
+
+        if (searchInput) searchInput.addEventListener("input", renderToys);
+        if (catSelect) catSelect.addEventListener("change", renderToys);
+
+        if (addCustomBtn && customInput) {
+          addCustomBtn.addEventListener("click", () => {
+            const val = customInput.value.trim();
+            if (!val) return;
+            toggleWish(val);
+            customInput.value = "";
+          });
+        }
+
+        if (sendBtn) {
+          sendBtn.addEventListener("click", () => {
+            const wishesArea = document.getElementById("childWishesInput");
+            if (wishesArea && wishlist.length > 0) {
+              wishesArea.value = wishlist.join(", ");
+            }
+            const letterTabBtn = document.querySelector('.tab-btn[data-tab="letterTab"]');
+            if (letterTabBtn) letterTabBtn.click();
+            drawSantaLetter();
+          });
+        }
+
+        renderWishlist();
+        renderToys();
+      }
+
+      /* =========================================================
+         8. DATA: DEC 1-25 BEDTIME BEHAVIOUR CHART
+         ========================================================= */
+      const BEDTIME_GOALS = [
+        "Pyjamas & teeth brushed",
+        "Tidy room before bed",
+        "Kind words all day",
+        "Bedtime story & calm",
+        "In bed right on time",
+        "Helped at home today",
+        "Great listening ears",
+        "School/reading effort",
+        "Clothes folded neatly",
+        "Peaceful lights out",
+        "Shared kindly today",
+        "Brush & wash on time",
+        "Helpful elf spirit",
+        "Tidy toys away",
+        "Polite & cheerful",
+        "Bedtime routine star",
+        "Kind to family/pets",
+        "Ready for sleep early",
+        "Super tidy bedroom",
+        "Extra kindness deed",
+        "Calm & cosy bedtime",
+        "Great manners today",
+        "Shoes & coat tidy",
+        "Christmas Eve readiness",
+        "Christmas Day Joy!"
+      ];
+
+      function initBehaviourChart() {
+        const grid = document.getElementById("behaviourGrid");
+        const countEl = document.getElementById("totalStarsCount");
+        const meterEl = document.getElementById("spiritMeterText");
+        const resetBtn = document.getElementById("resetStarsBtn");
+        const syncBtn = document.getElementById("syncStarsToLetterBtn");
+        if (!grid) return;
+
+        /* State map: { "1": 1 (gold star) | 2 (super elf) | 0 } */
+        let starMap = safeGet(STORAGE_KEYS.stars, { "1": 1, "2": 1, "3": 2, "4": 1, "5": 1 });
+
+        function render() {
+          grid.innerHTML = "";
+          let earnedDays = 0;
+
+          for (let d = 1; d <= 25; d++) {
+            const state = starMap[String(d)] || 0;
+            if (state > 0) earnedDays++;
+
+            const card = document.createElement("button");
+            card.type = "button";
+            card.className = "star-day" + (state === 1 ? " earned" : state === 2 ? " super" : "");
+            const icon = state === 2 ? "🌟" : state === 1 ? "⭐" : "☆";
+            const label = state === 2 ? "Super Elf!" : state === 1 ? "Golden Star" : "Tap for Star";
+
+            card.innerHTML =
+              '<div style="font-weight:bold; color:#8B0000; font-size:0.9rem;">Dec ' + d + "</div>" +
+              '<div class="star-icon">' + icon + "</div>" +
+              '<div style="font-size:0.76rem; color:#241914; font-weight:bold;">' + BEDTIME_GOALS[d - 1] + "</div>" +
+              '<div style="font-size:0.72rem; color:#6B5B53; margin-top:3px;">' + label + "</div>";
+
+            card.addEventListener("click", () => {
+              const next = (state + 1) % 3;
+              starMap[String(d)] = next;
+              safeSet(STORAGE_KEYS.stars, starMap);
+              if (next > 0) playSleighBells();
+              render();
+            });
+
+            grid.appendChild(card);
+          }
+
+          if (countEl) countEl.textContent = String(earnedDays);
+          if (meterEl) {
+            if (earnedDays >= 20) {
+              meterEl.textContent = "North Pole Spirit Status: Official Gold-Star Head Elf Honour Roll!";
+            } else if (earnedDays >= 10) {
+              meterEl.textContent = "North Pole Spirit Status: Shining Bright on Santa's Nice List!";
+            } else {
+              meterEl.textContent = "North Pole Spirit Status: Building Golden Stars for Christmas Eve!";
+            }
+          }
+        }
+
+        if (resetBtn) {
+          resetBtn.addEventListener("click", () => {
+            starMap = {};
+            safeSet(STORAGE_KEYS.stars, starMap);
+            render();
+          });
+        }
+
+        if (syncBtn) {
+          syncBtn.addEventListener("click", () => {
+            const letterTabBtn = document.querySelector('.tab-btn[data-tab="letterTab"]');
+            if (letterTabBtn) letterTabBtn.click();
+            drawSantaLetter();
+          });
+        }
+
+        render();
+      }
+
+      /* =========================================================
+         9. ISO A4 PORTRAIT SANTA REPLY LETTER CANVAS GENERATOR
+         ========================================================= */
+      function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
+        const words = text.split(/\s+/);
+        let line = "";
+        let currY = y;
+
+        for (let n = 0; n < words.length; n++) {
+          const testLine = line + words[n] + " ";
+          const metrics = ctx.measureText(testLine);
+          if (metrics.width > maxWidth && n > 0) {
+            ctx.fillText(line.trim(), x, currY);
+            line = words[n] + " ";
+            currY += lineHeight;
+          } else {
+            line = testLine;
+          }
+        }
+        if (line.trim()) {
+          ctx.fillText(line.trim(), x, currY);
+          currY += lineHeight;
+        }
+        return currY;
+      }
+
+      function drawSantaLetter() {
+        const canvas = document.getElementById("santaLetterCanvas");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+
+        /* Exact ISO A4 Portrait proportions (1240 x 1754 px) */
+        const W = 1240;
+        const H = 1754;
+        canvas.width = W;
+        canvas.height = H;
+
+        const childName = (document.getElementById("childNameInput").value || "Friend").trim();
+        const childAge = (document.getElementById("childAgeInput").value || "8").trim();
+        const childTown = (document.getElementById("childTownInput").value || "England").trim();
+        const childDeed = (document.getElementById("childDeedInput").value || "being kind and helpful").trim();
+        const childWishes = (document.getElementById("childWishesInput").value || "a special surprise from the workshop").trim();
+        const childExtra = (document.getElementById("childExtraInput").value || "").trim();
+
+        const starMap = safeGet(STORAGE_KEYS.stars, {});
+        const starTotal = Object.values(starMap).filter((v) => v > 0).length;
+
+        safeSet(STORAGE_KEYS.letter, {
+          childName,
+          childAge,
+          childTown,
+          childDeed,
+          childWishes,
+          childExtra
+        });
+
+        /* 1. Warm Parchment Background */
+        const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+        bgGrad.addColorStop(0, "#FFFDF7");
+        bgGrad.addColorStop(0.5, "#FDF7E7");
+        bgGrad.addColorStop(1, "#F8EDD4");
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, W, H);
+
+        /* 2. Festive Crimson & Gold Double Frame */
+        ctx.strokeStyle = "#8B0000";
+        ctx.lineWidth = 14;
+        ctx.strokeRect(44, 44, W - 88, H - 88);
+
+        ctx.strokeStyle = "#D4AF37";
+        ctx.lineWidth = 5;
+        ctx.strokeRect(66, 66, W - 132, H - 132);
+
+        ctx.strokeStyle = "#164A32";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(78, 78, W - 156, H - 156);
+
+        /* Corner Holly Ornaments */
+        const corners = [
+          [78, 78],
+          [W - 78, 78],
+          [78, H - 78],
+          [W - 78, H - 78]
+        ];
+        corners.forEach(([cx, cy]) => {
+          ctx.fillStyle = "#164A32";
+          ctx.beginPath();
+          ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#D4AF37";
+          ctx.beginPath();
+          ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        /* 3. Official North Pole Header & Address */
+        ctx.fillStyle = "#8B0000";
+        ctx.font = "bold 46px Georgia, serif";
+        ctx.textAlign = "center";
+        ctx.fillText("FROM THE DESK OF SANTA CLAUS", W / 2, 165);
+
+        ctx.fillStyle = "#164A32";
+        ctx.font = "bold 24px Georgia, serif";
+        ctx.fillText("1 Reindeer Lane, North Pole, Arctic Circle, H0H 0H0", W / 2, 208);
+
+        /* Gold Divider Line */
+        ctx.strokeStyle = "#D4AF37";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(160, 238);
+        ctx.lineTo(W - 160, 238);
+        ctx.stroke();
+
+        /* Air Mail Postmark Stamp Box (Top Right) */
+        ctx.save();
+        ctx.strokeStyle = "#8B0000";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(W - 330, 265, 200, 96);
+        ctx.fillStyle = "#8B0000";
+        ctx.font = "bold 18px Georgia, serif";
+        ctx.textAlign = "center";
+        ctx.fillText("OFFICIAL AIR MAIL", W - 230, 298);
+        ctx.font = "16px Georgia, serif";
+        ctx.fillText("SLEIGH DISPATCH", W - 230, 322);
+        ctx.fillText("NICE LIST VERIFIED", W - 230, 346);
+        ctx.restore();
+
+        /* 4. Salutation & Multi-Paragraph Personalised Body */
+        ctx.textAlign = "left";
+        const leftX = 135;
+        const maxTextW = W - 270;
+        let y = 340;
+
+        ctx.fillStyle = "#8B0000";
+        ctx.font = "bold 36px Georgia, serif";
+        ctx.fillText("Dear " + childName + ",", leftX, y);
+        y += 66;
+
+        ctx.fillStyle = "#241914";
+        ctx.font = "28px Georgia, serif";
+        const lineH = 44;
+
+        const p1 =
+          "Ho! Ho! Ho! Greetings from the snowy North Pole! Rudolph, Bernard the Head Elf, and I have just finished checking the Great Golden Ledger, and we were delighted to see your name shining brightly all the way from " +
+          childTown +
+          ". Being " +
+          childAge +
+          " years old is a wonderful adventure, and we have been cheering you on all year long.";
+        y = wrapCanvasText(ctx, p1, leftX, y, maxTextW, lineH) + 26;
+
+        const starSentence =
+          starTotal > 0
+            ? "Our workshop star-spotters also counted " +
+              starTotal +
+              " Golden Bedtime Stars on your December chart—what a brilliant achievement! "
+            : "";
+
+        const p2 =
+          starSentence +
+          "Word reached Reindeer Lane about how proud everyone is of you for " +
+          childDeed +
+          ". Kindness, effort, and a cheerful heart are the very things that keep our Christmas magic flying high across the winter sky.";
+        y = wrapCanvasText(ctx, p2, leftX, y, maxTextW, lineH) + 26;
+
+        const p3 =
+          "I also read your Christmas letter very carefully and shared your wishes (" +
+          childWishes +
+          ") with the master toymakers in Workshop Bay 1. The elves are busy polishing, wrapping, and tying scarlet ribbons so everything is ready for Christmas Eve.";
+        y = wrapCanvasText(ctx, p3, leftX, y, maxTextW, lineH) + 26;
+
+        const extraLine = childExtra ? " Don't forget " + childExtra + " before you head to sleep!" : "";
+        const p4 =
+          "Remember to get plenty of rest on Christmas Eve, keep up your wonderful spirit, and leave out a crunchy carrot for Rudolph and his team." +
+          extraLine;
+        y = wrapCanvasText(ctx, p4, leftX, y, maxTextW, lineH) + 46;
+
+        /* 5. Signature & Official Wax Seal */
+        ctx.fillStyle = "#164A32";
+        ctx.font = "italic 30px Georgia, serif";
+        ctx.fillText("With warmest Christmas wishes and sleigh-bell cheer,", leftX, y);
+        y += 66;
+
+        ctx.fillStyle = "#8B0000";
+        ctx.font = "italic bold 52px Georgia, serif";
+        ctx.fillText("Santa Claus", leftX, y);
+
+        ctx.fillStyle = "#6B5B53";
+        ctx.font = "22px Georgia, serif";
+        ctx.fillText("Countersigned by Bernard, Chief Workshop Elf", leftX, y + 40);
+
+        /* Crimson & Gold Wax Seal Emblem (Bottom Right) */
+        const sealX = W - 245;
+        const sealY = H - 230;
+        ctx.fillStyle = "#8B0000";
+        ctx.beginPath();
+        ctx.arc(sealX, sealY, 84, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#D4AF37";
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(sealX, sealY, 70, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = "#F6DC7A";
+        ctx.textAlign = "center";
+        ctx.font = "bold 20px Georgia, serif";
+        ctx.fillText("NORTH POLE", sealX, sealY - 12);
+        ctx.fillText("OFFICIAL", sealX, sealY + 14);
+        ctx.fillText("SEAL", sealX, sealY + 38);
+      }
+
+      function initSantaLetter() {
+        const saved = safeGet(STORAGE_KEYS.letter, null);
+        if (saved) {
+          if (saved.childName) document.getElementById("childNameInput").value = saved.childName;
+          if (saved.childAge) document.getElementById("childAgeInput").value = saved.childAge;
+          if (saved.childTown) document.getElementById("childTownInput").value = saved.childTown;
+          if (saved.childDeed) document.getElementById("childDeedInput").value = saved.childDeed;
+          if (saved.childWishes) document.getElementById("childWishesInput").value = saved.childWishes;
+          if (saved.childExtra !== undefined) document.getElementById("childExtraInput").value = saved.childExtra;
+        }
+
+        const genBtn = document.getElementById("generateLetterBtn");
+        const dlBtn = document.getElementById("downloadA4Btn");
+        const printBtn = document.getElementById("printA4Btn");
+
+        if (genBtn) {
+          genBtn.addEventListener("click", () => {
+            drawSantaLetter();
+            playSleighBells();
+          });
+        }
+
+        if (dlBtn) {
+          dlBtn.addEventListener("click", () => {
+            drawSantaLetter();
+            const canvas = document.getElementById("santaLetterCanvas");
+            const name = (document.getElementById("childNameInput").value || "Santa").trim().replace(/\s+/g, "_");
+            const link = document.createElement("a");
+            link.download = "North_Pole_Express_Santa_Letter_" + name + "_A4.png";
+            link.href = canvas.toDataURL("image/png");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          });
+        }
+
+        if (printBtn) {
+          printBtn.addEventListener("click", () => {
+            drawSantaLetter();
+            window.print();
+          });
+        }
+
+        drawSantaLetter();
+      }
+
+      /* =========================================================
+         10. BOOTSTRAP APPLICATION SAFELY
+         ========================================================= */
+      function initApp() {
+        registerInlineManifest();
+        initSnowfall();
+        initGrottoControls();
+        checkInitialAccess();
+        initTabs();
+        initAdvent();
+        initToyLibrary();
+        initBehaviourChart();
+        initSantaLetter();
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initApp);
+      } else {
+        initApp();
+      }
+    })();
+  </script>
+</body>
+</html>
 
