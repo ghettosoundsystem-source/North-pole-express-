@@ -22,7 +22,6 @@
       --ink: #241914;
       --muted: #6B5B53;
       --card-shadow: 0 10px 28px rgba(36, 12, 12, 0.28);
-      --radius: 16px;
     }
 
     * {
@@ -49,7 +48,6 @@
       font-family: inherit;
     }
 
-    /* Snowfall Canvas */
     #snowCanvas {
       position: fixed;
       inset: 0;
@@ -216,7 +214,7 @@
     .btn-stripe {
       display: block;
       width: 100%;
-      padding: 14px 16px;
+      padding: 15px 16px;
       background: linear-gradient(135deg, #B81D24 0%, #7A0C14 100%);
       color: #FFFDF7;
       border: 2px solid var(--gold);
@@ -226,25 +224,18 @@
       text-decoration: none;
       cursor: pointer;
       box-shadow: 0 8px 20px rgba(139, 0, 0, 0.35);
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .btn-stripe:active {
       transform: scale(0.99);
     }
 
-    .btn-trial {
-      display: block;
-      width: 100%;
-      padding: 11px 14px;
-      background: var(--evergreen);
-      color: #FFFDF7;
-      border: 1.5px solid var(--gold);
-      border-radius: 12px;
-      font-size: 0.92rem;
+    .trial-note {
+      font-size: 0.8rem;
+      color: var(--evergreen);
       font-weight: bold;
-      cursor: pointer;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .grotto-divider {
@@ -381,7 +372,6 @@
       transform: scale(0.97);
     }
 
-    /* Welcome Passcode Banner */
     #passcodeBanner {
       display: none;
       background: linear-gradient(135deg, #FFFDF7, #F6E6BD);
@@ -401,7 +391,6 @@
       display: flex;
     }
 
-    /* Navigation Tabs */
     .nav-tabs {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -466,9 +455,7 @@
       color: var(--muted);
     }
 
-    /* =========================================================
-       TAB 1: 24-DAY ADVENT CALENDAR
-       ========================================================= */
+    /* TAB 1: 24-DAY ADVENT CALENDAR */
     .advent-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
@@ -526,9 +513,7 @@
       display: block;
     }
 
-    /* =========================================================
-       TAB 2: 64-ITEM TOY LIBRARY
-       ========================================================= */
+    /* TAB 2: 64-ITEM TOY LIBRARY */
     .toy-controls {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -629,9 +614,7 @@
       border-color: var(--evergreen);
     }
 
-    /* =========================================================
-       TAB 3: DEC 1-25 BEDTIME BEHAVIOUR CHART
-       ========================================================= */
+    /* TAB 3: DEC 1-25 BEDTIME BEHAVIOUR CHART */
     .chart-summary {
       display: flex;
       flex-wrap: wrap;
@@ -676,9 +659,7 @@
       margin: 4px 0;
     }
 
-    /* =========================================================
-       TAB 4: SANTA REPLY LETTER (ISO A4 PORTRAIT)
-       ========================================================= */
+    /* TAB 4: SANTA REPLY LETTER (ISO A4 PORTRAIT) */
     .letter-layout {
       display: grid;
       grid-template-columns: 1fr 1.15fr;
@@ -777,9 +758,6 @@
       }
     }
 
-    /* =========================================================
-       PRINT STYLESHEET (ISO A4 PORTRAIT FULL BLEED)
-       ========================================================= */
     @media print {
       @page {
         size: A4 portrait;
@@ -839,15 +817,14 @@
       <a
         id="stripePayBtn"
         class="btn-stripe"
-        href="https://buy.stripe.com/3cI7sLemFaAY4Yn1u88EM0b"
+        href="https://buy.stripe.com/cNiaEX7YhdNaeyXdcQ8EM0c"
         rel="noopener"
       >
-        Unlock Full Family Grotto Pass via Stripe
+        Start 7-Day Free Trial &amp; Unlock Grotto Pass
       </a>
-
-      <button type="button" id="startTrialBtn" class="btn-trial">
-        Start 7-Day Free Family Trial
-      </button>
+      <div class="trial-note">
+        Instant automatic unlock via Stripe &bull; Cancel anytime during your 7-day trial
+      </div>
 
       <div class="grotto-divider">Returning Member or Admin Pass</div>
 
@@ -898,9 +875,7 @@
       <button type="button" class="tab-btn" data-tab="letterTab">📜 Santa A4 Letter</button>
     </nav>
 
-    <!-- =======================================================
-         TAB 1: 24-DAY ADVENT CALENDAR
-         ======================================================= -->
+    <!-- TAB 1: 24-DAY ADVENT CALENDAR -->
     <section id="adventTab" class="tab-panel active">
       <div class="panel-header">
         <div>
@@ -919,9 +894,7 @@
       </div>
     </section>
 
-    <!-- =======================================================
-         TAB 2: 64-ITEM TOY LIBRARY
-         ======================================================= -->
+    <!-- TAB 2: 64-ITEM TOY LIBRARY -->
     <section id="toysTab" class="tab-panel">
       <div class="panel-header">
         <div>
@@ -963,9 +936,7 @@
       <div id="toyGrid" class="toy-grid"></div>
     </section>
 
-    <!-- =======================================================
-         TAB 3: DEC 1-25 BEDTIME BEHAVIOUR CHART
-         ======================================================= -->
+    <!-- TAB 3: DEC 1-25 BEDTIME BEHAVIOUR CHART -->
     <section id="starsTab" class="tab-panel">
       <div class="panel-header">
         <div>
@@ -990,9 +961,7 @@
       <div id="behaviourGrid" class="behaviour-grid"></div>
     </section>
 
-    <!-- =======================================================
-         TAB 4: PERSONALISED ISO A4 PORTRAIT SANTA REPLY LETTER
-         ======================================================= -->
+    <!-- TAB 4: PERSONALISED ISO A4 PORTRAIT SANTA REPLY LETTER -->
     <section id="letterTab" class="tab-panel">
       <div class="panel-header">
         <div>
@@ -1025,7 +994,7 @@
 
           <div class="form-group">
             <label for="childWishesInput">Top Christmas Wishes (Auto-fills from Toy Library)</label>
-            <textarea id="childWishesInput" rows="3" placeholder="e.g. Wooden Train Set, Stargazing Telescope">Stargazing Refractor Telescope, Remote Control Off-Road Buggy</textarea>
+            <textarea id="childWishesInput" rows="3" placeholder="e.g. Wooden Train Set, Stargazing Telescope">Stargazing Refractor Telescope, North Pole Express Electric Train Set</textarea>
           </div>
 
           <div class="form-group">
@@ -1057,9 +1026,6 @@
     (function () {
       "use strict";
 
-      /* =========================================================
-         1. SAFE STORAGE & PWA MANIFEST SETUP
-         ========================================================= */
       const STORAGE_KEYS = {
         session: "npe_member_session_v2",
         advent: "npe_advent_opened_v2",
@@ -1084,7 +1050,7 @@
         try {
           window.localStorage.setItem(key, JSON.stringify(val));
         } catch (err) {
-          /* Ignore storage quota/private mode errors */
+          /* Ignore storage errors */
         }
       }
 
@@ -1114,13 +1080,11 @@
           link.href = URL.createObjectURL(blob);
           document.head.appendChild(link);
         } catch (err) {
-          /* Manifest optional */
+          /* Optional */
         }
       }
 
-      /* =========================================================
-         2. SLEIGH BELLS WEB AUDIO SYNTHESIZER
-         ========================================================= */
+      /* SLEIGH BELLS SYNTHESIZER */
       let bellsEnabled = safeGet(STORAGE_KEYS.bells, true);
       let audioCtx = null;
 
@@ -1152,9 +1116,7 @@
         }
       }
 
-      /* =========================================================
-         3. SNOWFALL ANIMATION
-         ========================================================= */
+      /* SNOWFALL ANIMATION */
       function initSnowfall() {
         const canvas = document.getElementById("snowCanvas");
         if (!canvas) return;
@@ -1198,9 +1160,7 @@
         tick();
       }
 
-      /* =========================================================
-         4. 3D GROTTO DOUBLE-DOOR PAYWALL & ACCESS CONTROL
-         ========================================================= */
+      /* 3D GROTTO DOUBLE-DOOR PAYWALL & ACCESS CONTROL */
       function generatePasscode() {
         const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         const part = () =>
@@ -1257,7 +1217,7 @@
           const session = {
             user: "Grotto Member",
             code: newCode,
-            tier: "PAID",
+            tier: "STRIPE_PASS",
             unlockedAt: Date.now()
           };
           try {
@@ -1271,20 +1231,11 @@
 
         const saved = safeGet(STORAGE_KEYS.session, null);
         if (saved && saved.code) {
-          if (saved.tier === "TRIAL") {
-            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-            if (Date.now() - saved.unlockedAt > sevenDaysMs) {
-              const msg = document.getElementById("grottoStatusMsg");
-              if (msg) msg.textContent = "Your 7-day trial has ended. Unlock full access or enter your Grotto Passcode.";
-              return;
-            }
-          }
           unlockGrotto(saved, false);
         }
       }
 
       function initGrottoControls() {
-        const trialBtn = document.getElementById("startTrialBtn");
         const loginBtn = document.getElementById("memberLoginBtn");
         const lockBtn = document.getElementById("lockGrottoBtn");
         const dismissBtn = document.getElementById("dismissBannerBtn");
@@ -1297,16 +1248,6 @@
             safeSet(STORAGE_KEYS.bells, bellsEnabled);
             bellBtn.textContent = bellsEnabled ? "🔔 Sleigh Bells: On" : "🔕 Sleigh Bells: Off";
             if (bellsEnabled) playSleighBells();
-          });
-        }
-
-        if (trialBtn) {
-          trialBtn.addEventListener("click", () => {
-            const code = generatePasscode();
-            unlockGrotto(
-              { user: "7-Day Trial Family", code: code, tier: "TRIAL", unlockedAt: Date.now() },
-              true
-            );
           });
         }
 
@@ -1334,7 +1275,7 @@
               );
             } else {
               if (msg) {
-                msg.textContent = "Please enter a valid NPE-XXXX-XXXX Passcode or complete Stripe checkout above.";
+                msg.textContent = "Please start your 7-day trial via Stripe above or enter a valid NPE-XXXX-XXXX Passcode.";
               }
             }
           });
@@ -1352,9 +1293,7 @@
         }
       }
 
-      /* =========================================================
-         5. TAB NAVIGATION
-         ========================================================= */
+      /* TAB NAVIGATION */
       function initTabs() {
         const buttons = document.querySelectorAll(".tab-btn");
         const panels = document.querySelectorAll(".tab-panel");
@@ -1372,9 +1311,7 @@
         });
       }
 
-      /* =========================================================
-         6. DATA: 24-DAY ADVENT CALENDAR
-         ========================================================= */
+      /* 24-DAY ADVENT CALENDAR */
       const ADVENT_DAYS = [
         { day: 1, title: "The Sleigh Polishing Crew", story: "Head Elf Bernard opened the main hangar doors at dawn. Nine teams of elves are buffing the brass runners on Santa's sleigh until they gleam like mirrors.", task: "Kindness Quest: Tidy your shoes and coat neatly without being asked." },
         { day: 2, title: "Rudolph's Fog-Lamp Check", story: "Rudolph tested his bright red nose across the Arctic runway today, guiding two cargo sleds safely through a swirling snow squall.", task: "Kindness Quest: Share a warm compliment with someone in your family." },
@@ -1451,11 +1388,8 @@
         render();
       }
 
-      /* =========================================================
-         7. DATA: 64-ITEM TOY LIBRARY (8 CATEGORIES x 8 ITEMS = 64)
-         ========================================================= */
+      /* 64-ITEM TOY LIBRARY */
       const TOY_LIBRARY = [
-        /* 1. Creative & Arts (8) */
         { id: 1, cat: "Creative & Arts", name: "Deluxe Wooden Art Easel & Chalkboard" },
         { id: 2, cat: "Creative & Arts", name: "120-Piece Artist Watercolour & Sketch Case" },
         { id: 3, cat: "Creative & Arts", name: "Pottery Wheel & Air-Dry Clay Studio" },
@@ -1465,7 +1399,6 @@
         { id: 7, cat: "Creative & Arts", name: "Friendship Bracelet & Bead Loom" },
         { id: 8, cat: "Creative & Arts", name: "Glow-in-the-Dark Window Paint Kit" },
 
-        /* 2. STEM & Gadgets (8) */
         { id: 9, cat: "STEM & Gadgets", name: "Stargazing Refractor Telescope" },
         { id: 10, cat: "STEM & Gadgets", name: "Programmable Mars Rover Robotics Kit" },
         { id: 11, cat: "STEM & Gadgets", name: "Snap-Together Electronic Circuit Lab" },
@@ -1475,7 +1408,6 @@
         { id: 15, cat: "STEM & Gadgets", name: "Solar-Powered 12-in-1 Robot Builder" },
         { id: 16, cat: "STEM & Gadgets", name: "Junior Metal Detector & Treasure Finder" },
 
-        /* 3. Active & Wheels (8) */
         { id: 17, cat: "Active & Wheels", name: "All-Terrain Mountain Bike & Helmet" },
         { id: 18, cat: "Active & Wheels", name: "LED Light-Up Folding Kick Scooter" },
         { id: 19, cat: "Active & Wheels", name: "Junior Boxing Gloves & Punching Bag Set" },
@@ -1485,7 +1417,6 @@
         { id: 23, cat: "Active & Wheels", name: "Adjustable Inline Roller Skates" },
         { id: 24, cat: "Active & Wheels", name: "Indoor Doorway Basketball Hoop" },
 
-        /* 4. Games & Puzzles (8) */
         { id: 25, cat: "Games & Puzzles", name: "Handcrafted Wooden Chess & Draughts Set" },
         { id: 26, cat: "Games & Puzzles", name: "1000-Piece North Pole Express Jigsaw" },
         { id: 27, cat: "Games & Puzzles", name: "Family Trivia & Charades Party Box" },
@@ -1495,7 +1426,6 @@
         { id: 31, cat: "Games & Puzzles", name: "Magnetic Travel Games Compendium" },
         { id: 32, cat: "Games & Puzzles", name: "Speed Cube & Brainteaser Puzzle Pack" },
 
-        /* 5. Books & Stories (8) */
         { id: 33, cat: "Books & Stories", name: "Illustrated Treasury of Myths & Legends" },
         { id: 34, cat: "Books & Stories", name: "World Atlas & Ancient Wonders Encyclopaedia" },
         { id: 35, cat: "Books & Stories", name: "Complete Fantasy Adventure Book Box Set" },
@@ -1505,7 +1435,6 @@
         { id: 39, cat: "Books & Stories", name: "Classic Bedtime Tales Gold Edition" },
         { id: 40, cat: "Books & Stories", name: "1001 Brain-Bending Riddles & Jokes Book" },
 
-        /* 6. Plush & Cozy (8) */
         { id: 41, cat: "Plush & Cozy", name: "Giant Velvet Rudolph Plush Companion" },
         { id: 42, cat: "Plush & Cozy", name: "Arctic Polar Bear & Cub Snuggle Set" },
         { id: 43, cat: "Plush & Cozy", name: "Starlight Galaxy Ceiling Projector Lamp" },
@@ -1515,7 +1444,6 @@
         { id: 47, cat: "Plush & Cozy", name: "Snowy Owl Soft Toy with Hoot Sound" },
         { id: 48, cat: "Plush & Cozy", name: "Personalised Reindeer Hot Water Bottle" },
 
-        /* 7. Music & Stage (8) */
         { id: 49, cat: "Music & Stage", name: "61-Key Light-Up Learning Keyboard" },
         { id: 50, cat: "Music & Stage", name: "Junior Acoustic Guitar & Plectrum Pack" },
         { id: 51, cat: "Music & Stage", name: "Mini DJ Mixer Deck with Sound Pads" },
@@ -1525,7 +1453,6 @@
         { id: 55, cat: "Music & Stage", name: "Wooden Ukulele with Tuner & Songbook" },
         { id: 56, cat: "Music & Stage", name: "Stop-Motion Animation Movie Studio" },
 
-        /* 8. Build & Models (8) */
         { id: 57, cat: "Build & Models", name: "North Pole Express Electric Train Set" },
         { id: 58, cat: "Build & Models", name: "1500-Piece Medieval Castle Brick Kit" },
         { id: 59, cat: "Build & Models", name: "Eco-Timber Treehouse Architecture Kit" },
@@ -1648,9 +1575,7 @@
         renderToys();
       }
 
-      /* =========================================================
-         8. DATA: DEC 1-25 BEDTIME BEHAVIOUR CHART
-         ========================================================= */
+      /* DEC 1-25 BEDTIME BEHAVIOUR CHART */
       const BEDTIME_GOALS = [
         "Pyjamas & teeth brushed",
         "Tidy room before bed",
@@ -1687,7 +1612,6 @@
         const syncBtn = document.getElementById("syncStarsToLetterBtn");
         if (!grid) return;
 
-        /* State map: { "1": 1 (gold star) | 2 (super elf) | 0 } */
         let starMap = safeGet(STORAGE_KEYS.stars, { "1": 1, "2": 1, "3": 2, "4": 1, "5": 1 });
 
         function render() {
@@ -1752,9 +1676,7 @@
         render();
       }
 
-      /* =========================================================
-         9. ISO A4 PORTRAIT SANTA REPLY LETTER CANVAS GENERATOR
-         ========================================================= */
+      /* ISO A4 PORTRAIT SANTA REPLY LETTER CANVAS GENERATOR */
       function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
         const words = text.split(/\s+/);
         let line = "";
@@ -1783,7 +1705,6 @@
         if (!canvas) return;
         const ctx = canvas.getContext("2d");
 
-        /* Exact ISO A4 Portrait proportions (1240 x 1754 px) */
         const W = 1240;
         const H = 1754;
         canvas.width = W;
@@ -1808,7 +1729,6 @@
           childExtra
         });
 
-        /* 1. Warm Parchment Background */
         const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
         bgGrad.addColorStop(0, "#FFFDF7");
         bgGrad.addColorStop(0.5, "#FDF7E7");
@@ -1816,7 +1736,6 @@
         ctx.fillStyle = bgGrad;
         ctx.fillRect(0, 0, W, H);
 
-        /* 2. Festive Crimson & Gold Double Frame */
         ctx.strokeStyle = "#8B0000";
         ctx.lineWidth = 14;
         ctx.strokeRect(44, 44, W - 88, H - 88);
@@ -1829,7 +1748,6 @@
         ctx.lineWidth = 2;
         ctx.strokeRect(78, 78, W - 156, H - 156);
 
-        /* Corner Holly Ornaments */
         const corners = [
           [78, 78],
           [W - 78, 78],
@@ -1847,7 +1765,6 @@
           ctx.fill();
         });
 
-        /* 3. Official North Pole Header & Address */
         ctx.fillStyle = "#8B0000";
         ctx.font = "bold 46px Georgia, serif";
         ctx.textAlign = "center";
@@ -1857,7 +1774,6 @@
         ctx.font = "bold 24px Georgia, serif";
         ctx.fillText("1 Reindeer Lane, North Pole, Arctic Circle, H0H 0H0", W / 2, 208);
 
-        /* Gold Divider Line */
         ctx.strokeStyle = "#D4AF37";
         ctx.lineWidth = 3;
         ctx.beginPath();
@@ -1865,7 +1781,6 @@
         ctx.lineTo(W - 160, 238);
         ctx.stroke();
 
-        /* Air Mail Postmark Stamp Box (Top Right) */
         ctx.save();
         ctx.strokeStyle = "#8B0000";
         ctx.lineWidth = 3;
@@ -1879,7 +1794,6 @@
         ctx.fillText("NICE LIST VERIFIED", W - 230, 346);
         ctx.restore();
 
-        /* 4. Salutation & Multi-Paragraph Personalised Body */
         ctx.textAlign = "left";
         const leftX = 135;
         const maxTextW = W - 270;
@@ -1928,7 +1842,6 @@
           extraLine;
         y = wrapCanvasText(ctx, p4, leftX, y, maxTextW, lineH) + 46;
 
-        /* 5. Signature & Official Wax Seal */
         ctx.fillStyle = "#164A32";
         ctx.font = "italic 30px Georgia, serif";
         ctx.fillText("With warmest Christmas wishes and sleigh-bell cheer,", leftX, y);
@@ -1942,7 +1855,6 @@
         ctx.font = "22px Georgia, serif";
         ctx.fillText("Countersigned by Bernard, Chief Workshop Elf", leftX, y + 40);
 
-        /* Crimson & Gold Wax Seal Emblem (Bottom Right) */
         const sealX = W - 245;
         const sealY = H - 230;
         ctx.fillStyle = "#8B0000";
@@ -2010,9 +1922,6 @@
         drawSantaLetter();
       }
 
-      /* =========================================================
-         10. BOOTSTRAP APPLICATION SAFELY
-         ========================================================= */
       function initApp() {
         registerInlineManifest();
         initSnowfall();
@@ -2034,4 +1943,3 @@
   </script>
 </body>
 </html>
-
