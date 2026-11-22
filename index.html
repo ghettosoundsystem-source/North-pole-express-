@@ -304,7 +304,7 @@
     }
 
     /* =========================================================
-       MAIN APP SHELL
+       MAIN APP SHELL & ACCOUNT SETUP BAR
        ========================================================= */
     .app-shell {
       position: relative;
@@ -372,23 +372,38 @@
       transform: scale(0.97);
     }
 
-    #passcodeBanner {
+    /* Customer Account Setup / Password Manager Drawer */
+    #accountPanel {
       display: none;
       background: linear-gradient(135deg, #FFFDF7, #F6E6BD);
       color: var(--ink);
       border: 2px solid var(--gold);
-      border-radius: 14px;
-      padding: 12px 16px;
+      border-radius: 16px;
+      padding: 14px 16px;
       margin-bottom: 14px;
       box-shadow: var(--card-shadow);
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
     }
 
-    #passcodeBanner.visible {
-      display: flex;
+    #accountPanel.visible {
+      display: block;
+    }
+
+    .account-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 8px;
+      margin-top: 10px;
+      align-items: center;
+    }
+
+    .account-grid input {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1.5px solid #C9B288;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: #FFF;
+      color: var(--ink);
     }
 
     .nav-tabs {
@@ -756,6 +771,9 @@
       .login-row {
         grid-template-columns: 1fr;
       }
+      .account-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media print {
@@ -826,12 +844,12 @@
         Instant automatic unlock via Stripe &bull; Cancel anytime during your 7-day trial
       </div>
 
-      <div class="grotto-divider">Returning Member or Admin Pass</div>
+      <div class="grotto-divider">Customer Account or Developer Login</div>
 
       <div class="login-box">
         <div class="login-row">
-          <input type="text" id="memberUserInput" placeholder="Family Name (e.g. Grass)" autocomplete="username" />
-          <input type="text" id="memberCodeInput" placeholder="Grotto Passcode" autocomplete="off" />
+          <input type="text" id="memberUserInput" placeholder="Account Username" autocomplete="username" />
+          <input type="password" id="memberPassInput" placeholder="Account / Dev Password" autocomplete="current-password" />
         </div>
         <button type="button" id="memberLoginBtn" class="btn-login">
           Open the Grotto Doors
@@ -851,21 +869,30 @@
         <p>Official Workshop Dispatch &bull; 1 Reindeer Lane, North Pole, H0H 0H0</p>
       </div>
       <div class="topbar-controls">
-        <span id="activePassBadge" class="pill-badge">Pass: Locked</span>
+        <span id="activePassBadge" class="pill-badge">Locked</span>
+        <button type="button" id="accountBtn" class="btn-mini">🔑 My Account</button>
         <button type="button" id="bellToggleBtn" class="btn-mini">🔔 Sleigh Bells: On</button>
         <button type="button" id="lockGrottoBtn" class="btn-mini">🔒 Lock Doors</button>
       </div>
     </header>
 
-    <div id="passcodeBanner" role="status">
-      <div>
-        <strong>🎉 Welcome to the North Pole Express!</strong>
-        <div style="font-size:0.88rem; margin-top:2px;">
-          Save your unique Grotto Passcode to log back in anytime:
-          <code id="bannerPasscodeText" style="background:#FFF; padding:2px 8px; border-radius:6px; border:1px solid #9E7B16; font-weight:bold;"></code>
+    <!-- PAID CUSTOMER ACCOUNT USERNAME & PASSWORD PANEL -->
+    <div id="accountPanel" role="region" aria-label="Customer Account Credentials">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <strong style="color:#8B0000; font-size:1rem;">🔑 Your North Pole Express Account Login</strong>
+          <div id="accountCurrentSummary" style="font-size:0.85rem; margin-top:2px;"></div>
         </div>
+        <button type="button" id="closeAccountPanelBtn" class="btn-mini" style="background:#8B0000; color:#FFF;">Close</button>
       </div>
-      <button type="button" id="dismissBannerBtn" class="btn-mini" style="background:#8B0000; color:#FFF;">Got It</button>
+      <div id="accountEditorRow" class="account-grid">
+        <input type="text" id="setAccountUserInput" placeholder="Choose your Username (e.g. SmithFamily)" />
+        <input type="text" id="setAccountPassInput" placeholder="Choose your Password" />
+        <button type="button" id="saveAccountCredsBtn" class="btn-mini" style="background:#164A32; color:#FFF; font-weight:bold; padding:10px 14px;">
+          Save Login
+        </button>
+      </div>
+      <div id="accountSaveMsg" style="font-size:0.82rem; color:#164A32; font-weight:bold; margin-top:6px;"></div>
     </div>
 
     <nav class="nav-tabs" aria-label="North Pole Express Sections">
@@ -1027,7 +1054,8 @@
       "use strict";
 
       const STORAGE_KEYS = {
-        session: "npe_member_session_v2",
+        paidAccount: "npe_paid_account_v3",
+        activeRole: "npe_active_role_v3",
         advent: "npe_advent_opened_v2",
         wishlist: "npe_toy_wishlist_v2",
         stars: "npe_bedtime_stars_v2",
@@ -1035,7 +1063,8 @@
         bells: "npe_sleigh_bells_v2"
       };
 
-      const DEV_PASSCODE = "SANTA-DEV-2026";
+      /* SINGLE DEVELOPER PASSWORD */
+      const DEV_PASSWORD = "SANTA-DEV-2026";
 
       function safeGet(key, fallback) {
         try {
@@ -1160,29 +1189,63 @@
         tick();
       }
 
-      /* 3D GROTTO DOUBLE-DOOR PAYWALL & ACCESS CONTROL */
-      function generatePasscode() {
+      /* =========================================================
+         3D GROTTO AUTHENTICATION (DEVELOPER + PAID CUSTOMER ACCOUNT)
+         ========================================================= */
+      function generateInitialCustomerPassword() {
         const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         const part = () =>
           Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
         return "NPE-" + part() + "-" + part();
       }
 
-      function unlockGrotto(sessionObj, showNewBanner) {
-        safeSet(STORAGE_KEYS.session, sessionObj);
-
-        const overlay = document.getElementById("grottoOverlay");
+      function refreshAccountPanelUI(role) {
+        const summary = document.getElementById("accountCurrentSummary");
+        const editorRow = document.getElementById("accountEditorRow");
         const badge = document.getElementById("activePassBadge");
-        const banner = document.getElementById("passcodeBanner");
-        const bannerCode = document.getElementById("bannerPasscodeText");
 
-        if (badge) {
-          badge.textContent = sessionObj.user + " • " + sessionObj.code;
+        if (role === "DEV") {
+          if (badge) badge.textContent = "Developer Admin";
+          if (summary) {
+            summary.innerHTML =
+              "Signed in with <strong>Developer Master Password</strong> (<code>" +
+              DEV_PASSWORD +
+              "</code>). Full workshop access active.";
+          }
+          if (editorRow) editorRow.style.display = "none";
+          return;
         }
 
-        if (showNewBanner && banner && bannerCode) {
-          bannerCode.textContent = sessionObj.code;
-          banner.classList.add("visible");
+        const acct = safeGet(STORAGE_KEYS.paidAccount, null);
+        if (acct && acct.isPaid) {
+          if (badge) badge.textContent = "Member: " + acct.username;
+          if (summary) {
+            summary.innerHTML =
+              "Username: <code>" +
+              acct.username +
+              "</code> &bull; Password: <code>" +
+              acct.password +
+              "</code> (Personalise your login below)";
+          }
+          if (editorRow) {
+            editorRow.style.display = "grid";
+            const uIn = document.getElementById("setAccountUserInput");
+            const pIn = document.getElementById("setAccountPassInput");
+            if (uIn) uIn.value = acct.username;
+            if (pIn) pIn.value = acct.password;
+          }
+        }
+      }
+
+      function unlockGrotto(role, openAccountSetup) {
+        safeSet(STORAGE_KEYS.activeRole, role);
+        refreshAccountPanelUI(role);
+
+        const overlay = document.getElementById("grottoOverlay");
+        const accountPanel = document.getElementById("accountPanel");
+
+        if (openAccountSetup && accountPanel) {
+          accountPanel.classList.add("visible");
         }
 
         document.body.classList.remove("grotto-locked");
@@ -1196,6 +1259,7 @@
       }
 
       function lockGrotto() {
+        safeSet(STORAGE_KEYS.activeRole, null);
         const overlay = document.getElementById("grottoOverlay");
         if (!overlay) return;
         overlay.style.display = "flex";
@@ -1213,33 +1277,44 @@
           Boolean(params.get("session_id"));
 
         if (isStripeReturn) {
-          const newCode = generatePasscode();
-          const session = {
-            user: "Grotto Member",
-            code: newCode,
-            tier: "STRIPE_PASS",
-            unlockedAt: Date.now()
-          };
+          let acct = safeGet(STORAGE_KEYS.paidAccount, null);
+          if (!acct || !acct.isPaid) {
+            acct = {
+              isPaid: true,
+              username: "FamilyMember",
+              password: generateInitialCustomerPassword(),
+              createdAt: Date.now()
+            };
+            safeSet(STORAGE_KEYS.paidAccount, acct);
+          }
           try {
             window.history.replaceState({}, document.title, window.location.pathname);
           } catch (err) {
             /* Ignore history replace error */
           }
-          unlockGrotto(session, true);
+          unlockGrotto("CUSTOMER", true);
           return;
         }
 
-        const saved = safeGet(STORAGE_KEYS.session, null);
-        if (saved && saved.code) {
-          unlockGrotto(saved, false);
+        const activeRole = safeGet(STORAGE_KEYS.activeRole, null);
+        if (activeRole === "DEV") {
+          unlockGrotto("DEV", false);
+          return;
+        }
+
+        const acct = safeGet(STORAGE_KEYS.paidAccount, null);
+        if (activeRole === "CUSTOMER" && acct && acct.isPaid) {
+          unlockGrotto("CUSTOMER", false);
         }
       }
 
       function initGrottoControls() {
         const loginBtn = document.getElementById("memberLoginBtn");
         const lockBtn = document.getElementById("lockGrottoBtn");
-        const dismissBtn = document.getElementById("dismissBannerBtn");
         const bellBtn = document.getElementById("bellToggleBtn");
+        const accountBtn = document.getElementById("accountBtn");
+        const closeAccountBtn = document.getElementById("closeAccountPanelBtn");
+        const saveCredsBtn = document.getElementById("saveAccountCredsBtn");
 
         if (bellBtn) {
           bellBtn.textContent = bellsEnabled ? "🔔 Sleigh Bells: On" : "🔕 Sleigh Bells: Off";
@@ -1253,30 +1328,34 @@
 
         if (loginBtn) {
           loginBtn.addEventListener("click", () => {
-            const userVal = (document.getElementById("memberUserInput").value || "").trim() || "Grotto Family";
-            const codeVal = (document.getElementById("memberCodeInput").value || "").trim().toUpperCase();
+            const userVal = (document.getElementById("memberUserInput").value || "").trim();
+            const passVal = (document.getElementById("memberPassInput").value || "").trim();
             const msg = document.getElementById("grottoStatusMsg");
-            const saved = safeGet(STORAGE_KEYS.session, null);
 
-            const isValidDev = codeVal === DEV_PASSCODE;
-            const isSavedMatch = saved && saved.code && codeVal === saved.code.toUpperCase();
-            const isValidFormat = /^NPE-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(codeVal);
-
-            if (isValidDev || isSavedMatch || isValidFormat) {
+            /* 1. Single Developer Password Check */
+            if (passVal === DEV_PASSWORD) {
               if (msg) msg.textContent = "";
-              unlockGrotto(
-                {
-                  user: isValidDev ? "Creator Admin" : userVal,
-                  code: codeVal,
-                  tier: isValidDev ? "ADMIN" : "MEMBER",
-                  unlockedAt: Date.now()
-                },
-                false
-              );
-            } else {
-              if (msg) {
-                msg.textContent = "Please start your 7-day trial via Stripe above or enter a valid NPE-XXXX-XXXX Passcode.";
+              unlockGrotto("DEV", false);
+              return;
+            }
+
+            /* 2. Paid Customer Account Check (Username + Account Password) */
+            const acct = safeGet(STORAGE_KEYS.paidAccount, null);
+            if (acct && acct.isPaid) {
+              const userMatches =
+                !userVal || userVal.toLowerCase() === acct.username.toLowerCase();
+              const passMatches = passVal === acct.password;
+
+              if (userMatches && passMatches) {
+                if (msg) msg.textContent = "";
+                unlockGrotto("CUSTOMER", false);
+                return;
               }
+            }
+
+            if (msg) {
+              msg.textContent =
+                "Invalid username or password. Please check your account login or unlock via Stripe above.";
             }
           });
         }
@@ -1285,10 +1364,46 @@
           lockBtn.addEventListener("click", lockGrotto);
         }
 
-        if (dismissBtn) {
-          dismissBtn.addEventListener("click", () => {
-            const banner = document.getElementById("passcodeBanner");
-            if (banner) banner.classList.remove("visible");
+        if (accountBtn) {
+          accountBtn.addEventListener("click", () => {
+            const panel = document.getElementById("accountPanel");
+            if (panel) panel.classList.toggle("visible");
+          });
+        }
+
+        if (closeAccountBtn) {
+          closeAccountBtn.addEventListener("click", () => {
+            const panel = document.getElementById("accountPanel");
+            if (panel) panel.classList.remove("visible");
+          });
+        }
+
+        if (saveCredsBtn) {
+          saveCredsBtn.addEventListener("click", () => {
+            const acct = safeGet(STORAGE_KEYS.paidAccount, null);
+            const saveMsg = document.getElementById("accountSaveMsg");
+            if (!acct || !acct.isPaid) return;
+
+            const newU = (document.getElementById("setAccountUserInput").value || "").trim();
+            const newP = (document.getElementById("setAccountPassInput").value || "").trim();
+
+            if (!newU || newP.length < 4) {
+              if (saveMsg) {
+                saveMsg.style.color = "#8B0000";
+                saveMsg.textContent = "Please enter a username and a password of at least 4 characters.";
+              }
+              return;
+            }
+
+            acct.username = newU;
+            acct.password = newP;
+            safeSet(STORAGE_KEYS.paidAccount, acct);
+            refreshAccountPanelUI("CUSTOMER");
+            if (saveMsg) {
+              saveMsg.style.color = "#164A32";
+              saveMsg.textContent = "Saved! Use this username and password anytime to access your account.";
+            }
+            playSleighBells();
           });
         }
       }
